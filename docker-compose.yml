@@ -1,0 +1,50 @@
+services:
+  ml-api:
+    build:
+      context: .
+      dockerfile: ml-api/Dockerfile
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  estimator-api:
+    build: ./estimator-api
+    environment:
+      ML_API_URL: http://ml-api:8000
+      ESTIMATES_DB_PATH: /data/estimates.db
+    ports:
+      - "8001:8001"
+    volumes:
+      - estimates:/data
+    depends_on:
+      ml-api:
+        condition: service_healthy
+
+  market-api:
+    build: ./market-api
+    environment:
+      ML_API_URL: http://ml-api:8000
+    ports:
+      - "8080:8080"
+    depends_on:
+      ml-api:
+        condition: service_healthy
+
+  web:
+    build: ./web
+    environment:
+      ML_API_URL: http://ml-api:8000
+      ESTIMATOR_API_URL: http://estimator-api:8001
+      MARKET_API_URL: http://market-api:8080
+    ports:
+      - "3010:3010"
+    depends_on:
+      - estimator-api
+      - market-api
+
+volumes:
+  estimates:

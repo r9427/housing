@@ -1,0 +1,11 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: market-api
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+
+model:
+  base-url: ${ML_API_URL:http://localhost:8000}

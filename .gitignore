@@ -221,3 +221,13 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+.venv/
+.tools/
+**/__pycache__/
+**/.pytest_cache/
+data/estimates.db
+market-api/target/
+web/node_modules/
+web/.next/
+

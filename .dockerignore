@@ -1,0 +1,8 @@
+.venv
+.tools
+**/.pytest_cache
+**/__pycache__
+web/node_modules
+web/.next
+market-api/target
+data/estimates.db
