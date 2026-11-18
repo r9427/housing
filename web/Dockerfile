@@ -1,7 +1,12 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+# Registry downloads from inside Docker Desktop often reset. Keep the npm
+# cache across attempts and retry the install instead of failing the build.
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --cache /root/.npm --prefer-offline --fetch-retries=5 --fetch-retry-mintimeout=20000 --fetch-retry-maxtimeout=120000 --maxsockets=3 \
+    || npm ci --cache /root/.npm --prefer-offline --fetch-retries=5 --fetch-retry-mintimeout=20000 --fetch-retry-maxtimeout=120000 --maxsockets=3 \
+    || npm ci --cache /root/.npm --prefer-offline --fetch-retries=5 --fetch-retry-mintimeout=20000 --fetch-retry-maxtimeout=120000 --maxsockets=3
 
 FROM node:22-alpine AS build
 WORKDIR /app
