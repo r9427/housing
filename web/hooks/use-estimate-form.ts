@@ -12,9 +12,17 @@ import {
   validateFeatures,
 } from "@/lib/validation";
 
-export function useEstimateForm(onCreated: (estimate: Estimate) => void) {
+function takenName(label: string, existing: Estimate[]): string | null {
+  const name = label.trim();
+  if (!name) return null;
+  const taken = existing.some((item) => (item.label ?? "").trim().toLocaleLowerCase() === name.toLocaleLowerCase());
+  return taken ? "This property name is already used." : null;
+}
+
+export function useEstimateForm(onCreated: (estimate: Estimate) => void, existing: Estimate[]) {
   const [values, setValues] = useState(EMPTY_VALUES);
   const [label, setLabel] = useState("");
+  const [nameError, setNameError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Partial<Record<FieldName, string>>>({});
   const [pending, setPending] = useState(false);
   const [result, setResult] = useState<Estimate | null>(null);
@@ -24,9 +32,15 @@ export function useEstimateForm(onCreated: (estimate: Estimate) => void) {
     setValues((current) => ({ ...current, [name]: value }));
   }
 
+  function changeLabel(value: string) {
+    setLabel(value);
+    setNameError((current) => (current ? takenName(value, existing) : null));
+  }
+
   function fill(features: Features, name: string) {
     setValues(featuresToStrings(features));
     setLabel(name);
+    setNameError(takenName(name, existing));
     setErrors({});
     api.clear();
   }
@@ -38,6 +52,12 @@ export function useEstimateForm(onCreated: (estimate: Estimate) => void) {
     const firstInvalid = FIELD_DEFS.find((field) => nextErrors[field.name]);
     if (firstInvalid) {
       document.getElementById(firstInvalid.name)?.focus();
+      return;
+    }
+    const duplicate = takenName(label, existing);
+    setNameError(duplicate);
+    if (duplicate) {
+      document.getElementById("label")?.focus();
       return;
     }
     if (label.trim().length > 80) {
@@ -68,5 +88,5 @@ export function useEstimateForm(onCreated: (estimate: Estimate) => void) {
     }
   }
 
-  return { values, update, label, setLabel, errors, pending, result, submit, fill, error: api.error };
+  return { values, update, label, changeLabel, nameError, errors, pending, result, submit, fill, error: api.error };
 }

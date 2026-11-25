@@ -21,7 +21,7 @@ export function EstimatorWorkspace({
   historyError: string | null;
 }) {
   const history = useEstimateHistory(initialHistory);
-  const form = useEstimateForm(history.add);
+  const form = useEstimateForm(history.add, history.items);
 
   return (
     <div className="grid gap-8">
@@ -47,10 +47,19 @@ export function EstimatorWorkspace({
               Use edge case
             </button>
           </div>
-          <label className="grid gap-1 text-sm" htmlFor="label">
-            Property name
-            <input id="label" value={form.label} onChange={(event) => form.setLabel(event.target.value)} maxLength={80} className="rounded-xl border border-line px-3 py-2" />
-          </label>
+          <div className="grid gap-1 text-sm">
+            <label htmlFor="label">Property name</label>
+            <input
+              id="label"
+              value={form.label}
+              onChange={(event) => form.changeLabel(event.target.value)}
+              maxLength={80}
+              aria-invalid={Boolean(form.nameError)}
+              aria-describedby={form.nameError ? "label-error" : undefined}
+              className="rounded-xl border border-line px-3 py-2"
+            />
+            {form.nameError ? <p id="label-error" role="alert" className="text-sm text-danger">{form.nameError}</p> : null}
+          </div>
           <div className="mt-4 grid gap-4">
             {FIELD_DEFS.map((field) => {
               const error = form.errors[field.name];
