@@ -30,6 +30,60 @@ Then open [http://localhost:3010](http://localhost:3010).
 
 Stop the stack with `docker compose down`. Estimate history is kept in the `estimates` volume. `docker compose down -v` deletes that volume.
 
+## Run locally
+
+Use this while developing. Each process reloads or restarts on its own, and the ports match Compose. Stop the Compose stack first so ports `8000`, `8001`, `8080`, and `3010` are free:
+
+```bash
+docker compose stop
+```
+
+One-time setup. Python 3.12, JDK 21, Maven, and Node.js are required. Each Python service has its own virtualenv.
+
+```bash
+python -m venv ml-api\.venv
+ml-api\.venv\Scripts\python.exe -m pip install -r ml-api\requirements.txt
+
+python -m venv estimator-api\.venv
+estimator-api\.venv\Scripts\python.exe -m pip install -r estimator-api\requirements.txt
+
+npm install --prefix web
+```
+
+Start each service in its own terminal:
+
+```bash
+# model, from ml-api
+.\.venv\Scripts\Activate.ps1
+python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+The model service finds `data/house_prices.csv` at the repository root.
+
+```bash
+# estimator, from estimator-api
+.\.venv\Scripts\Activate.ps1
+export ML_API_URL="http://127.0.0.1:8000"
+python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8001
+```
+
+Saved estimates go to `data/estimates.db`.
+
+```bash
+# market, from market-api
+export ML_API_URL="http://127.0.0.1:8000"
+mvn spring-boot:run
+```
+
+```bash
+# portal, from web
+npm run dev
+```
+
+Then open [http://localhost:3010](http://localhost:3010). Saving a Python file restarts that API. Saving a portal file refreshes the browser. Restart `mvn spring-boot:run` after a Java change.
+
+From Cursor, run the task **all services** (Terminal → Run Task), or start **All services** from Run and Debug. The debug configurations are `ML API`, `Estimator API`, `Market API`, and `Web`. Those Python launches use `ml-api/.venv` and `estimator-api/.venv`. Run the model tests with `ml-api\.venv\Scripts\python.exe -m pytest` from `ml-api`. The Market API configuration needs the Java extension. When editing a Python file, choose that service's interpreter with Python: Select Interpreter.
+
 Python APIs also publish interactive docs:
 
 - [http://localhost:8000/docs](http://localhost:8000/docs)

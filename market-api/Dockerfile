@@ -4,18 +4,17 @@ WORKDIR /app
 COPY pom.xml .
 COPY src ./src
 RUN mvn -q -DskipTests package
+COPY docker/HealthCheck.java /tmp/HealthCheck.java
+RUN javac /tmp/HealthCheck.java
 
 FROM eclipse-temurin:21-jre
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl \
-    && rm -rf /var/lib/apt/lists/*
-
 WORKDIR /app
 COPY --from=build /app/target/market-api.jar app.jar
+COPY --from=build /tmp/HealthCheck.class HealthCheck.class
 
 EXPOSE 8080
 
-HEALTHCHECK --interval=15s --timeout=5s --retries=12 CMD curl -fsS http://127.0.0.1:8080/api/health || exit 1
+HEALTHCHECK --interval=15s --timeout=5s --retries=12 CMD ["java", "-cp", "/app", "HealthCheck"]
 
 ENTRYPOINT ["java", "-jar", "app.jar"]

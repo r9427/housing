@@ -1,0 +1,124 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "ml-api",
+      "type": "process",
+      "command": "${workspaceFolder}\\ml-api\\.venv\\Scripts\\python.exe",
+      "args": ["-m", "uvicorn", "app.main:app", "--reload", "--host", "127.0.0.1", "--port", "8000"],
+      "options": {
+        "cwd": "${workspaceFolder}/ml-api"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "ml-api",
+        "pattern": {
+          "regexp": "\\b\\B"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "Uvicorn running"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "housing"
+      }
+    },
+    {
+      "label": "estimator-api",
+      "type": "process",
+      "command": "${workspaceFolder}\\estimator-api\\.venv\\Scripts\\python.exe",
+      "args": ["-m", "uvicorn", "app.main:app", "--reload", "--host", "127.0.0.1", "--port", "8001"],
+      "options": {
+        "cwd": "${workspaceFolder}/estimator-api",
+        "env": {
+          "ML_API_URL": "http://127.0.0.1:8000"
+        }
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "estimator-api",
+        "pattern": {
+          "regexp": "\\b\\B"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "Uvicorn running"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "housing"
+      }
+    },
+    {
+      "label": "market-api",
+      "type": "shell",
+      "command": "mvn spring-boot:run",
+      "options": {
+        "cwd": "${workspaceFolder}/market-api",
+        "env": {
+          "ML_API_URL": "http://127.0.0.1:8000"
+        }
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "market-api",
+        "pattern": {
+          "regexp": "\\b\\B"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "Started MarketApplication"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "housing"
+      }
+    },
+    {
+      "label": "web",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": {
+        "cwd": "${workspaceFolder}/web",
+        "env": {
+          "ML_API_URL": "http://127.0.0.1:8000",
+          "ESTIMATOR_API_URL": "http://127.0.0.1:8001",
+          "MARKET_API_URL": "http://127.0.0.1:8080"
+        }
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "web",
+        "pattern": {
+          "regexp": "\\b\\B"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "Local:"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "housing"
+      }
+    },
+    {
+      "label": "all services",
+      "dependsOn": ["ml-api", "estimator-api", "market-api", "web"],
+      "dependsOrder": "parallel",
+      "problemMatcher": []
+    }
+  ]
+}

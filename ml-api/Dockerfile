@@ -3,7 +3,12 @@ FROM python:3.12-slim
 WORKDIR /app
 
 COPY ml-api/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Large wheels such as SciPy often arrive truncated on a slow connection, and pip
+# then reports a hash mismatch. Keep the download cache and retry the install.
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --retries 10 --timeout 120 -r requirements.txt \
+    || pip install --retries 10 --timeout 120 -r requirements.txt \
+    || pip install --retries 10 --timeout 120 -r requirements.txt
 
 COPY ml-api/app ./app
 COPY data/house_prices.csv ./data/house_prices.csv

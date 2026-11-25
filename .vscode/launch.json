@@ -1,0 +1,62 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "ML API",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": ["app.main:app", "--reload", "--host", "127.0.0.1", "--port", "8000"],
+      "cwd": "${workspaceFolder}/ml-api",
+      "python": "${workspaceFolder}/ml-api/.venv/Scripts/python.exe",
+      "jinja": true,
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Estimator API",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": ["app.main:app", "--reload", "--host", "127.0.0.1", "--port", "8001"],
+      "cwd": "${workspaceFolder}/estimator-api",
+      "python": "${workspaceFolder}/estimator-api/.venv/Scripts/python.exe",
+      "env": {
+        "ML_API_URL": "http://127.0.0.1:8000"
+      },
+      "jinja": true,
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Market API",
+      "type": "java",
+      "request": "launch",
+      "mainClass": "com.hsbc.housing.market.MarketApplication",
+      "projectName": "market-api",
+      "cwd": "${workspaceFolder}/market-api",
+      "env": {
+        "ML_API_URL": "http://127.0.0.1:8000"
+      }
+    },
+    {
+      "name": "Web",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "${workspaceFolder}/web",
+      "env": {
+        "ML_API_URL": "http://127.0.0.1:8000",
+        "ESTIMATOR_API_URL": "http://127.0.0.1:8001",
+        "MARKET_API_URL": "http://127.0.0.1:8080"
+      },
+      "console": "integratedTerminal"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "All services",
+      "configurations": ["ML API", "Estimator API", "Market API", "Web"],
+      "stopAll": true
+    }
+  ]
+}
