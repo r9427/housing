@@ -1,3 +1,8 @@
 {
-  "java.configuration.updateBuildConfiguration": "automatic"
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "python.defaultInterpreterPath": "${workspaceFolder}/ml-api/.venv/Scripts/python.exe",
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/ml-api/.venv/Lib/site-packages",
+    "${workspaceFolder}/estimator-api/.venv/Lib/site-packages"
+  ]
 }
