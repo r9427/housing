@@ -1,5 +1,7 @@
 import csv
+import logging
 import os
+import threading
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -8,6 +10,8 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import KFold, cross_val_predict
+
+logger = logging.getLogger(__name__)
 
 FEATURES = [
     "square_footage",
@@ -103,11 +107,27 @@ def train_model(path: Path | None = None) -> TrainedModel:
     )
 
 
+class ModelTrainingError(Exception):
+    """The housing dataset could not be loaded or trained."""
+
+
 _model: TrainedModel | None = None
+_model_lock = threading.Lock()
 
 
 def get_model() -> TrainedModel:
     global _model
-    if _model is None:
-        _model = train_model()
-    return _model
+    loaded = _model
+    if loaded is not None:
+        return loaded
+    with _model_lock:
+        loaded = _model
+        if loaded is not None:
+            return loaded
+        try:
+            trained = train_model()
+        except (OSError, ValueError, csv.Error) as error:
+            logger.exception("Pricing model training failed")
+            raise ModelTrainingError(f"The pricing model is unavailable. {error}") from error
+        _model = trained
+        return trained

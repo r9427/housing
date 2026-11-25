@@ -56,3 +56,4 @@ class ModelInfo(BaseModel):
 class HealthResponse(BaseModel):
     status: str
     model_loaded: bool
+    uptime_seconds: float = Field(ge=0)

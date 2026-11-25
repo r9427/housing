@@ -21,8 +21,10 @@ SAMPLE = {
 def test_health() -> None:
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json()["status"] == "ok"
-    assert response.json()["model_loaded"] is True
+    body = response.json()
+    assert body["status"] == "ok"
+    assert body["model_loaded"] is True
+    assert body["uptime_seconds"] >= 0
 
 
 def test_model_info_reports_cross_validated_metrics() -> None:
@@ -63,6 +65,20 @@ def test_batch_prediction_uses_the_prediction_file() -> None:
     response = client.post("/predict", json={"instances": instances})
     assert response.status_code == 200
     assert response.json()["count"] == 10
+
+
+def test_missing_training_data_returns_503(monkeypatch, tmp_path) -> None:
+    from app import model_service
+
+    monkeypatch.setattr(model_service, "_model", None)
+    monkeypatch.setenv("HOUSING_DATA_PATH", str(tmp_path / "missing.csv"))
+    response = client.get("/health")
+    assert response.status_code == 503
+    body = response.json()
+    assert body["status"] == "unavailable"
+    assert body["model_loaded"] is False
+    assert body["uptime_seconds"] >= 0
+    assert model_service._model is None
 
 
 def test_invalid_property_is_rejected() -> None:
